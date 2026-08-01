@@ -1,0 +1,46 @@
+# --- Scratch / non-project work ---
+practice/
+notes/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# --- Virtual environments ---
+venv/
+.venv/
+env/
+ENV/
+
+# --- Environment / secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Testing & type checking ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.mypy_cache/
+.ruff_cache/
+.tox/
+
+# --- Logs & local data ---
+*.log
+logs/
+
+# --- Editors ---
+.idea/
+*.swp
+.vscode/
+# --- macOS ---
+.DS_Store
