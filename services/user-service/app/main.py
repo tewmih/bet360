@@ -6,7 +6,7 @@ from app.core.config import settings
 from app.core.logging import logger
 from app.db.session import Base, engine
 
-from app.api.v1 import health_router
+from app.api.v1 import health_router, auth_router, user_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -52,6 +52,8 @@ app = FastAPI(
 
 # Register routers
 app.include_router(health_router, prefix="/api/v1", tags=["Health"])
+app.include_router(auth_router, prefix="/api/v1/auth", tags=["Authentication"])
+app.include_router(user_router, prefix="/api/v1/users", tags=["Users"])
 
 @app.get("/")
 async def root():

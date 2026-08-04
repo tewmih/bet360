@@ -38,11 +38,18 @@ class UserRepository:
         logger.debug(f"User lookup by email: {email} -> {'found' if user else 'not found'}")
         return user
 
+    async def get_by_phone(self, phone_number: str) -> Optional[User]:
+        """Retrieve a user by phone number."""
+        result = await self.db.execute(select(User).where(User.phone_number == phone_number))
+        user = result.scalars().one_or_none()
+        logger.debug(f"User lookup by phone: {phone_number} -> {'found' if user else 'not found'}")
+        return user
+
     async def get_by_id(self, user_id: UUID) -> Optional[User]:
         """Retrieve a user by ID."""
         query = select(User).where(User.id == user_id)
         result = await self.db.execute(query)
-        user = result.one_or_none()
+        user = result.scalars().one_or_none()
         logger.debug(f"User lookup by ID: {user_id} -> {'found' if user else 'not found'}")
         return user
 
@@ -53,16 +60,16 @@ class UserRepository:
                ( User.email == identifier) | (User.phone_number == identifier)
             )
         )
-        user = result.one_or_none()
+        user = result.scalars().one_or_none()
         logger.debug(f"User lookup by identifier: {identifier} -> {'found' if user else 'not found'}")
         return user
 
     async def update(self, user: User, update_data: dict) -> User:
         """Update a user's fields."""
-        for key, value in update_data:
+        for key, value in update_data.items():
             if hasattr(user, key):
                 setattr(user, key, value)
-        await self.db.execute()
+        await self.db.commit()
         await self.db.refresh(user)
         logger.info(f"User updated: {user.email}")
         return user

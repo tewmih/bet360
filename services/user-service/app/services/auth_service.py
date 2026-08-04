@@ -5,7 +5,7 @@ from typing import Optional, Dict, Any
 from app.repositories.user_repository import UserRepository
 from app.core.security import hash_password, verify_password, create_access_token, create_refresh_token
 from app.core.logging import logger
-from app.schemas.auth import RegisterRequest, RegisterResponse, TokenResponse
+from app.schemas.auth import RegisterRequest, RegisterResponse, TokenResponse, AuthResponse
 
 
 class AuthService:
@@ -37,7 +37,7 @@ class AuthService:
             "full_name": data.full_name,
             "email": data.email,
             "phone_number": data.phone_number,
-            "password_hash": hashed_password,  # ← Fixed
+            "hashed_password": hashed_password,
             "role": "tenant",
             "is_verified": False,
             "is_active": True,
@@ -66,7 +66,7 @@ class AuthService:
             logger.info(f"User registered: {user.email}, ID: {user.id}")
 
             # Prepare response
-            response = RegisterResponse(  # ← Fixed: parentheses, not curly braces
+            user_response = RegisterResponse( 
                 id=user.id,
                 full_name=user.full_name,
                 email=user.email,
@@ -77,8 +77,13 @@ class AuthService:
                 trust_score=user.trust_score,
                 created_at=user.created_at,
             )
-
-            return response
+            # return user + token
+            return AuthResponse(
+                user= user_response,
+                access_token=access_token,
+                refresh_token=refresh_token,
+                token_type="bearer"
+            )
             
         except IntegrityError as e:
             await self.db.rollback()
@@ -100,7 +105,7 @@ class AuthService:
             return None
         
         # Verify password
-        if not verify_password(password, user.password_hash):
+        if not verify_password(password, user.hashed_password):
             logger.warning(f"Login attempt with invalid password: {user.email}")
             return None
         
@@ -146,6 +151,7 @@ class AuthService:
                     "trust_score": user.trust_score,
                     "created_at": user.created_at,
                 }
+            return None
         except ValueError:
             logger.error(f"Invalid UUID format: {user_id}")
         return None
