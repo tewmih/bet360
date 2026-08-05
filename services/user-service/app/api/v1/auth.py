@@ -1,8 +1,9 @@
+from app.core.exceptions import RefreshTokenError
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
-from app.schemas.auth import RegisterResponse, RegisterRequest, TokenResponse, AuthResponse
+from app.schemas.auth import RefreshRequest, RefreshResponse, RegisterResponse, RegisterRequest, TokenResponse, AuthResponse
 from app.services import AuthService
 from app.core.logging import logger
 
@@ -72,3 +73,31 @@ async def login(
             detail="An unexpected error occurred during login",
         )
 
+@router.post(
+    "/refresh",
+    response_model=RefreshResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Refresh access token",
+    description="Get a new access token using a refresh token.",
+)
+async def refresh_token(
+    data: RefreshRequest,
+    db:AsyncSession = Depends(get_db),
+):
+    """Refresh token"""
+
+    try:
+        auth_service = AuthService(db)
+        result = await auth_service.refresh_access_token(data.refresh_token)
+        return result
+    except RefreshTokenError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=e.deatail,
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error during token refresh: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred during token refresh",
+        )

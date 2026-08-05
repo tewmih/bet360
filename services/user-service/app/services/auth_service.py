@@ -1,15 +1,19 @@
+import uuid
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from typing import Optional, Dict, Any
+from jose import JWTError
 
 from app.repositories.user_repository import UserRepository
-from app.core.security import hash_password, verify_password, create_access_token, create_refresh_token
+from app.core.security import decode_token, hash_password, verify_password, create_access_token, create_refresh_token
 from app.core.logging import logger
-from app.schemas.auth import RegisterRequest, RegisterResponse, TokenResponse, AuthResponse
+from app.schemas.auth import RefreshResponse, RegisterRequest, RegisterResponse, TokenResponse, AuthResponse
 from app.core.exceptions import (
     EmailAlreadyExistsError,
     PhoneAlreadyExistsError,
     InvalidCredentialsError,
+    RefreshTokenError,
 )
 
 
@@ -161,3 +165,54 @@ class AuthService:
         except ValueError:
             logger.error(f"Invalid UUID format: {user_id}")
         return None
+    async def refresh_access_token(self, refresh_token: str) -> RefreshResponse:
+        """Refresh access token using a valid refresh token."""
+
+        try:
+            # Decode and validate the refresh token
+            payload = decode_token(refresh_token)
+
+            # Check token type
+            if payload.get("type") != "refresh":
+                logger.warning("Attempted to use non-refresh token for refresh")
+                raise RefreshTokenError("Invalid token type")
+            
+            # Get user ID from token
+            user_id = payload.get("sub")
+
+            if not user_id:
+                logger.warning("Refresh token missing subject")
+                raise RefreshTokenError("Invalid token")
+            
+            # Validate UUID format
+            try:
+                user_uuid = uuid.UUID(user_id)
+            except ValueError:
+                logger.warning(f"Invalid UUID in refresh token: {user_id}")
+                raise RefreshTokenError("Invalid token")
+
+            # Check if user exists
+            user =  await self.user_repo.get_by_id(user_id)
+            if not user:
+                logger.warning(f"User not found for refresh token: {user_id}")
+                raise RefreshTokenError("User not found")
+
+            if not user.is_active:
+                logger.warning(f"Inactive user attemptted to refresh {user.email}")
+                raise RefreshTokenError("User account is not active")
+            # Generate new access token
+            new_access_token = create_access_token({
+                "sub": str(user.id),
+                "email": user.email,
+                "role": user.role,
+                "type": "access"
+            })
+            logger.info(f"Access token refreshed for user: {user.email}")
+
+            return {
+                "access_token":new_access_token,
+                "type": "bearer"
+            }
+        except JWTError as e:
+            logger.warning(f"Invalid JWT in refresh attempt: {e}")
+            raise RefreshTokenError()

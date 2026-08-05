@@ -71,3 +71,12 @@ class AuthResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+
+class RefreshRequest(BaseModel):
+    """Request schema for token refresh."""
+    refresh_token: str = Field(..., description="Refresh token to exchange for new access token")
+
+class RefreshResponse(BaseModel):
+    """Response schema for token refresh"""
+    access_token:str
+    token_type: str = "bearer"
