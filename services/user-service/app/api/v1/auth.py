@@ -1,9 +1,10 @@
+from app.core.dependencies import get_current_user
 from app.core.exceptions import RefreshTokenError
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
-from app.schemas.auth import RefreshRequest, RefreshResponse, RegisterResponse, RegisterRequest, TokenResponse, AuthResponse
+from app.schemas.auth import ChangePasswordRequest, RefreshRequest, RefreshResponse, RegisterResponse, RegisterRequest, TokenResponse, AuthResponse
 from app.services import AuthService
 from app.core.logging import logger
 
@@ -100,4 +101,32 @@ async def refresh_token(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred during token refresh",
+        )
+
+@router.post(
+    "/change-password",
+    status_code=status.HTTP_200_OK,
+    summary="Change password",
+    description="Change user's password with current password verification."
+)
+async def change_password(
+    data: ChangePasswordRequest,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Change the current user password"""
+    try:
+        auth_service = AuthService(db)
+        await auth_service.change_password(current_user["id"], data.current_password, data.new_password)
+        return {"message": "Password changed successfully"}
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error during password change {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred",
         )

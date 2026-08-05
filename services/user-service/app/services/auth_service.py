@@ -165,6 +165,7 @@ class AuthService:
         except ValueError:
             logger.error(f"Invalid UUID format: {user_id}")
         return None
+    
     async def refresh_access_token(self, refresh_token: str) -> RefreshResponse:
         """Refresh access token using a valid refresh token."""
 
@@ -216,3 +217,32 @@ class AuthService:
         except JWTError as e:
             logger.warning(f"Invalid JWT in refresh attempt: {e}")
             raise RefreshTokenError()
+
+    async def change_password(self, user_id: str, current_password: str, new_password: str) -> bool:
+        """Change user's password."""
+        # check user exists
+        try:
+            user_uuid = user_id if isinstance(user_id, uuid.UUID) else uuid.UUID(str(user_id))
+        except (ValueError, AttributeError, TypeError):
+            logger.error(f"Invalid user id: {user_id}")
+            raise ValueError("Invalid user ID")
+        user = await self.user_repo.get_by_id(user_uuid)
+        if not user:
+            logger.warning(f"User not found for password change: {user_id}")
+            raise ValueError("User not found")
+        #check the current password is the same as the database password
+        if not verify_password(current_password, user.hashed_password):
+            logger.warning(f"Invalid current password for user: {user.email}")
+            raise ValueError("Current password is incorrect")
+        # reject reusing the password that is already stored
+        if verify_password(new_password, user.hashed_password):
+            logger.warning(f"Password change rejected, new password matches current: {user.email}")
+            raise ValueError("New password must be different from the current password")
+        # hash the new password
+        new_hash = hash_password(new_password)
+        # update database
+        await self.user_repo.update(user, {"hashed_password": new_hash})
+
+        logger.info(f"Password changed for user: {user.email}")
+
+        return True

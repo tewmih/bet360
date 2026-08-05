@@ -80,3 +80,8 @@ class RefreshResponse(BaseModel):
     """Response schema for token refresh"""
     access_token:str
     token_type: str = "bearer"
+
+class ChangePasswordRequest(BaseModel):
+    """Request schema for password change."""
+    current_password: str = Field(..., description="Current password")
+    new_password: str = Field(..., min_length=8, description="New password (min 8 characters)")
