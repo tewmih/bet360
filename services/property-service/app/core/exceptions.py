@@ -20,7 +20,7 @@ class PropertyServiceExceptions(Exception):
 
 class ListingNotFoundError(PropertyServiceExceptions):
         """Raised when a listing is not found."""
-        def __init__(self, listing_id: UUID):
+        def __init__(self, listing_id: Optional[str] = None):
             message = f"Listing with ID '{listing_id}' not found" if listing_id else "Listing not found"
             super().__init__(messgae=message, code="LISTING_NOT_FOUND")
 

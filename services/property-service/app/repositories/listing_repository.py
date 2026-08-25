@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete, or_, and_, func, cast, Integer
+from sqlalchemy import select, delete, or_, and_, func, cast, Integer, Float
 from sqlalchemy.exc import IntegrityError
 from uuid import UUID
 from typing import Optional, List, Dict, Any
@@ -87,8 +87,8 @@ class ListingRepository:
         self,
         city: Optional[str] = None,
         sub_city: Optional[str] = None,
-        min_price: Optional[int] = None,
-        max_price: Optional[int] = None,
+        min_price: Optional[float] = None,
+        max_price: Optional[float] = None,
         bedrooms: Optional[int] = None,
         bathrooms: Optional[int] = None,
         property_type: Optional[str] = None,
@@ -107,10 +107,10 @@ class ListingRepository:
             query = query.where(Listing.location["sub_city"].astext.ilike(f"%{sub_city}%"))
 
         if min_price is not None:
-            query = query.where(cast(Listing.pricing["amount"].astext, Integer) >= min_price)
+            query = query.where(cast(Listing.pricing["amount"].astext, Float) >= min_price)
 
         if max_price is not None:
-            query = query.where(cast(Listing.pricing["amount"].astext, Integer) <= max_price)
+            query = query.where(cast(Listing.pricing["amount"].astext, Float) <= max_price)
 
         if bedrooms is not None:
             query = query.where(cast(Listing.property_details["bedrooms"].astext, Integer) == bedrooms)

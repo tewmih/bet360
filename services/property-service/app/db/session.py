@@ -1,5 +1,7 @@
+from collections.abc import AsyncGenerator
+
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import DeclarativeBase
 from ..core.config import settings
 
 #Engine - manages the connection pool
@@ -19,10 +21,11 @@ async_session_maker = async_sessionmaker(
     autocommit= False,
 )
 
-# Base 
-Base = declarative_base()
+# Base
+class Base(DeclarativeBase):
+    pass
 
-async def get_db() -> AsyncSession:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """Provide a database session for dependency injection."""
     async with async_session_maker() as session:
         try:
