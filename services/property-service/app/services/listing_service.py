@@ -60,7 +60,7 @@ class ListingService:
             raise ListingNotFoundError(f"Listing with ID {listing_id} not found")
         return self._to_response(listing)
 
-    async def get_my_listings(self, skip: int = 0, limit: int = 20) -> List[ListingResponse]:
+    async def get_my_listings(self, skip:  int = 0, limit: int = 20) -> List[ListingResponse]:
         """Get all listings for the current user."""
         owner_id = self._get_user_id()  # ← FIXED (single underscore)
         listings = await self.repo.get_by_owner(owner_id, skip=skip, limit=limit)

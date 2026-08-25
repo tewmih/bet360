@@ -8,7 +8,6 @@ from .exceptions import (
     OwnerVerificationError,
     DuplicateListingError
 )
-
 __all__ = [
     "PropertyServiceExceptions",
     "ListingNotFoundError",
@@ -17,5 +16,5 @@ __all__ = [
     "ValidationError",
     "AuthenticationError",
     "OwnerVerificationError",
-    "DuplicateListingError"
+    "DuplicateListingError",
 ]

@@ -14,7 +14,7 @@ def setup_logging() -> logging.Logger:
 
     # Remove existing handlers to avoid deplicates
     if logger.hasHandlers():
-        logger.hasHandlers.clear()
+        logger.handlers.clear()
 
     # Create handler that outputs to terminal
     handler = logging.StreamHandler(sys.stdout)

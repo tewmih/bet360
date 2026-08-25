@@ -6,23 +6,23 @@ class PropertyServiceExceptions(Exception):
 
     def __init__(
         self,
-        messgae: str,
+        message: str,
         code: Optional[str] = None,
         field: Optional[str] = None,
         details: Optional[Any] = None,
     ):
-        self.messgae = messgae
+        self.message = message
         self.code = code or self.__class__.__name__
         self.field = field
         self.details = details
-        super().__init__(messgae)
+        super().__init__(message)
         
 
 class ListingNotFoundError(PropertyServiceExceptions):
         """Raised when a listing is not found."""
         def __init__(self, listing_id: Optional[str] = None):
             message = f"Listing with ID '{listing_id}' not found" if listing_id else "Listing not found"
-            super().__init__(messgae=message, code="LISTING_NOT_FOUND")
+            super().__init__(message, code="LISTING_NOT_FOUND")
 
 class ListingPermissionError(PropertyServiceExceptions):
          """Raised when a user doesn't have permission to access a listing."""

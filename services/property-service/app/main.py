@@ -6,7 +6,7 @@ from app.core.config import settings
 from app.core.logging import logger
 from app.db.session import engine
 from app.db.base import Base
-from app.api.v1 import health_router
+from app.api.v1 import health_router, listings_router
 
 
 @asynccontextmanager
@@ -44,6 +44,7 @@ app = FastAPI(
 
 # Register routers
 app.include_router(health_router, prefix="/api/v1", tags=["Health"])
+app.include_router(listings_router, prefix="/api/v1", tags=["Listings"])
 
 
 @app.get("/")
