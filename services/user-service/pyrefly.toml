@@ -1,0 +1,4 @@
+# Pin Pyrefly to this service's own virtualenv so pip-installed
+# packages (sqlalchemy, fastapi, ...) resolve without relying on
+# VS Code's interpreter picker / PET daemon.
+python-interpreter = "venv/bin/python"
