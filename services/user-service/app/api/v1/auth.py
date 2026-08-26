@@ -33,7 +33,7 @@ async def register( data: RegisterRequest, db: AsyncSession = Depends(get_db)):
         logger.error(f"Unexpected error during registration: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred during registration",
+            detail=f"An unexpected error occurred during registration {e}",
             )
 @router.post(
     "/login",
@@ -94,7 +94,7 @@ async def refresh_token(
     except RefreshTokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=e.deatail,
+            detail=e.detail,
         )
     except Exception as e:
         logger.error(f"Unexpected error during token refresh: {e}")
