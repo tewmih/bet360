@@ -133,3 +133,16 @@ class ListingRepository:
 
         logger.debug(f"Search returned {len(listings)} listings out of {total}")
         return listings, total
+    
+    async def exists_duplicate(self, owner_id: UUID, title: str) -> bool:
+        """Check if a listing with the same title already exists for the owner."""
+        result = await self.db.execute(
+            select(Listing).where(
+                and_(
+                    Listing.owner_id == owner_id,
+                    Listing.title == title,
+                    Listing.status.in_(["draft", "pending_verification", "verified", "published"])
+                )
+            ).limit(1)
+        )
+        return result.scalar_one_or_none is not None

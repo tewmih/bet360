@@ -5,6 +5,7 @@ from .listing import (
     LocationSchema,
     PricingSchema,
     PropertyDetailsSchema,
+    UpdateListingRequest,
 )
 
 __all__ = [
@@ -14,4 +15,5 @@ __all__ = [
     "LocationSchema",
     "PricingSchema",
     "PropertyDetailsSchema",
+    "UpdateListingRequest",
 ]

@@ -5,7 +5,7 @@ from typing import Optional, Dict, Any, List
 from app.repositories import ListingRepository
 from app.schemas import CreateListingRequest, ListingResponse, LocationSchema, PricingSchema, PropertyDetailsSchema
 from app.core.logging import logger
-from app.core.exceptions import ListingPermissionError, ListingStatusError, ListingNotFoundError, ValidationError
+from app.core.exceptions import ListingPermissionError, ListingStatusError, ListingNotFoundError, ValidationError, DuplicateListingError
 from app.models.listing import Listing
 
 
@@ -32,6 +32,11 @@ class ListingService:
         # Validate location
         if not data.location.sub_city:
             raise ValidationError("Sub-city is required", field="location.sub_city")
+
+        # Check for duplicate listing
+        is_duplicate = await self.repo.exists_duplicate(owner_id, data.title)
+        if is_duplicate:
+            raise DuplicateListingError(f"You already have a listing with the title '{data.title}'")
 
         # Prepare listing data
         listing_data = {

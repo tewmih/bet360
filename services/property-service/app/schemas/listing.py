@@ -83,3 +83,20 @@ class ListingsResponse(BaseModel):
     page: int
     limit: int
     total_pages: int
+
+# Update listing request
+class UpdateListingRequest(BaseModel):
+    title: Optional[str] = Field(None, min_length=5, max_length=200)
+    description: Optional[str] = Field(None, max_length=5000)
+    location: Optional[LocationSchema] = None
+    pricing: Optional[PricingSchema] = None
+    property_details: Optional[PropertyDetailsSchema] = None
+
+    @field_validator("title")
+    def validate_title(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        if len(v.strip()) < 5 or len(v.strip()) > 200:
+            raise ValueError("Title must be between 5 and 200 characters")
+        return v
+    

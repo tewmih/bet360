@@ -5,7 +5,7 @@ from typing import Optional, List, Dict
 
 from app.db.session import get_db
 from app.services.listing_service import ListingService
-from app.schemas.listing import CreateListingRequest, ListingResponse, ListingsResponse
+from app.schemas.listing import CreateListingRequest, ListingResponse, ListingsResponse, UpdateListingRequest
 from app.core.logging import logger
 from app.core.exceptions import (
     ListingNotFoundError,
@@ -166,14 +166,20 @@ async def get_listing(
 )
 async def update_listing(
     listing_id: UUID,
-    data: Dict,
+    data: UpdateListingRequest,
     current_user: Dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Update a specific listing by ID"""
     try:
         service = ListingService(db, current_user["id"])
-        listing = await service.update_listing(listing_id, data)
+        update_data = data.model_dump(exclude_unset=True)
+        if not update_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={"code": "NO_FIELDS_TO_UPDATE", "message": "No fields provided for update"}
+            )
+        listing = await service.update_listing(listing_id, update_data)
         return listing
     except ListingNotFoundError as e:
         raise HTTPException(
@@ -189,6 +195,11 @@ async def update_listing(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail={"code": e.code, "message": e.message}
+        )
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"code": e.code, "message": e.message, "field": e.field}
         )
     except Exception as e:
         logger.error(f"Unexpected error updating listing: {str(e)}", exc_info=True)
